@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Business {
+  id         Int       @id @default(autoincrement()) // Unique identifier for the category, automatically incremented
+  name_ar    String // Name of the category in Arabic
+  name_en    String // Name of the category in English
+  image_url  String // URL of the category image, useful for display purposes
+  created_at DateTime  @default(now()) // Timestamp for when the category was created
+  updated_at DateTime? @default(now()) @updatedAt // Timestamp for the last update to the category
+  deleted_at DateTime? // Optional field for soft deletion, indicating when the category was deleted
+  Service    Service[]
+
+  @@map("businesses")
+}
+
+model Service {
+  id             Int             @id @default(autoincrement()) // Unique identifier for the category, automatically incremented
+  name_ar        String // Name of the category in Arabic
+  name_en        String // Name of the category in English
+  description_ar String // Description of the category in Arabic
+  description_en String // Description of the category in English
+  price          Decimal // Price of the service
+  offer_price    Decimal? // Optional field for the discounted price of the service
+  image_url      String // URL of the category image, useful for display purposes
+  created_at     DateTime        @default(now()) // Timestamp for when the category was created
+  updated_at     DateTime?       @default(now()) @updatedAt // Timestamp for the last update to the category
+  deleted_at     DateTime? // Optional field for soft deletion, indicating when the category was deleted
+  business_id    Int
+  business       Business        @relation(fields: [business_id], references: [id])
+  user_id        Int
+  user           User            @relation(fields: [user_id], references: [id])
+  SerrviseImage  SerrviseImage[]
+  reservation    reservation[]
+
+  @@map("serrvises")
+}
+
+model SerrviseImage {
+  id         Int     @id @default(autoincrement())
+  image_url  String
+  service_id Int
+  service    Service @relation(fields: [service_id], references: [id])
+
+  @@map("serrvise_images")
+}
+
+// Define an enum to manage user roles
+enum UserRole {
+  CLIENT // Represents a client who books services
+  OWNER // Represents a business owner who offers services
+  ADMIN // Represents an admin who manages the system
+}
+
+model User {
+  id          Int           @id @default(autoincrement())
+  name        String // User's full name
+  email       String        @unique // Email, unique for each user
+  password    String // Hashed password for authentication
+  role        UserRole // Enum field specifying role (e.g., "client", "owner")
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @default(now()) @updatedAt
+  deleted_at  DateTime?
+  Service     Service[]
+  reservation reservation[]
+
+  @@map("users")
+}
+
+model reservation {
+  id               Int       @id @default(autoincrement())
+  user_id          Int
+  user             User      @relation(fields: [user_id], references: [id])
+  service_id       Int
+  service          Service   @relation(fields: [service_id], references: [id])
+  reservation_date DateTime
+  start_time       DateTime
+  end_time         DateTime
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @default(now()) @updatedAt
+  deleted_at       DateTime?
+
+  @@map("reservations")
+}
